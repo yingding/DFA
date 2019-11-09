@@ -1,4 +1,4 @@
-package com.example.efa.automat;
+package com.example.dfa.automat;
 
 import java.util.Collections;
 import java.util.Objects;

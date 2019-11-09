@@ -1,6 +1,6 @@
-package com.example.efa;
+package com.example.dfa;
 
-import com.example.efa.automat.Automat;
+import com.example.dfa.automat.Automat;
 
 import java.util.ArrayList;
 import java.util.List;
