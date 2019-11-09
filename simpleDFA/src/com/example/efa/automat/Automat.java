@@ -11,6 +11,9 @@ import java.util.Set;
  * q0(start) | q0, output:1    | q1, output: 0
  * q1        | q1, output:0    | q2, output: 1
  * q2(stop)  | q0, output:1    | q2, output: 0
+ *
+ * Reference to DFA:
+ * https://www.javatpoint.com/deterministic-finite-automata
  */
 public class Automat {
     private State state;
@@ -21,9 +24,10 @@ public class Automat {
 
     // Q, a finit set of states
     public enum StateTypes {
+        errorState,
         q0, // start state
         q1,
-        q2
+        q2,
     }
 
     // Sigma: Σ
@@ -41,7 +45,7 @@ public class Automat {
         return new State(StateTypes.q0);
     }
 
-    // accept state F (end states)
+    // accept state F (Final states)
     public static class EndStates {
         // https://stackoverflow.com/questions/2041778/how-to-initialize-hashset-values-by-construction/37406054#37406054
         private static final Set<State> endStates = Collections.singleton(new State(StateTypes.q2));
@@ -103,6 +107,7 @@ public class Automat {
                     output = 0;
                 } else {
                     output = Alphabet.error;
+                    this.state.stateType = StateTypes.errorState;
                 }
                 break;
             case q1:
@@ -114,6 +119,7 @@ public class Automat {
                     output = Alphabet.one;
                 } else {
                     output = Alphabet.error;
+                    this.state.stateType = StateTypes.errorState;
                 }
                 break;
             case q2:
@@ -125,10 +131,12 @@ public class Automat {
                     output = Alphabet.zero;
                 } else {
                     output = Alphabet.error;
+                    this.state.stateType = StateTypes.errorState;
                 }
                 break;
             default:
                 output = Alphabet.error;
+                this.state.stateType = StateTypes.errorState;
                 break;
         }
         return output;
@@ -143,7 +151,7 @@ public class Automat {
         return EndStates.isEndState(this.state);
     }
 
-    public String printTransitionDefinitions() {
+    public static String printTransitionDefinitions() {
          StringBuilder builder = new StringBuilder();
          builder.append("DFA State | input: 0        | input: 1").append("\n")
                  .append("q0(start) | q0, output:1    | q1, output: 0").append("\n")
@@ -155,26 +163,35 @@ public class Automat {
     public boolean execute(String inputs) {
         System.out.println("Start state: " + this);
         int input, output;
+        char c;
         for (int i = 0; i < inputs.length(); i++) {
-            if (Character.isDigit(inputs.charAt(i))) {
+            c = inputs.charAt(i);
+            if (Character.isDigit(c)) {
                 // since the digits are continus, we can just substract char 0 to the the integer difference
-                input = inputs.charAt(i) - '0';
+                input = c - '0';
                 System.out.println("----------------");
                 System.out.println("input:" + input);
                 output = this.transit(input);
                 if (output == Alphabet.error) {
                     // reset to start state or to error state
-                    System.out.println(String.format("Input %d is not a valid alphabet!", input));
-                    this.state = startState();
-                    return false;
+                    notValidInput(c);
+                    return false; // stop the further transition
                 }
                 System.out.println("output: " + output);
                 System.out.println("State after transition: " + this);
             } else {
-                System.out.println("Input is ignored, not a digit!");
+                notValidInput(c);
+                return false; // stop the further transition
             }
         }
         return this.isInEndState();
+    }
+
+    private void notValidInput(char input) {
+        System.out.println(String.format("Input %c is not a valid alphabet!", input));
+        if (this.state.stateType != StateTypes.errorState) {
+            this.state.stateType = StateTypes.errorState;
+        }
     }
 
 }
